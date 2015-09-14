@@ -66,8 +66,8 @@ class MyDropbox():
 
     def do_write_file(self, filename, data):
         f = open(filename, 'w')
-        f.write('# last updated at: ' + str(datetime.datetime.now()) + '\n')
-        f.write('\n')
+        f.write('# last updated at: ' + str(datetime.datetime.now()) + '\r\n')
+        f.write('\r\n')
         for d in data:
             f.write(d.encode('utf8')+'\r\n')
         f.close()
