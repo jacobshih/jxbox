@@ -104,19 +104,19 @@ class MyDropbox():
                     tofile='filelist',
                 )
                 for line in diff:
-                     line = line.strip('\n\r')
-                     if line.startswith('+'):
-                         if line.startswith(HEADER_TO_FILE):
-                             continue
-                         elif line[1:].startswith(HEADER_FILELIST_UPDATED):
-                             continue
-                         elif not line[1:].startswith(FOLDER_YESDEFY):
-                             continue
-                         elif line[1:].startswith(FOLDER_NEW):
-                             continue
-                         else:
+                    line = line.strip('\n\r').decode('utf8')
+                    if line.startswith('+'):
+                        if line.startswith(HEADER_TO_FILE):
+                            continue
+                        elif line[1:].startswith(HEADER_FILELIST_UPDATED):
+                            continue
+                        elif not line[1:].startswith(FOLDER_YESDEFY):
+                            continue
+                        elif line[1:].startswith(FOLDER_NEW):
+                            continue
+                        else:
                             self.new_files.append(line[1:])
-                     pass
+                    pass
                 pass
             pass
         pass
@@ -125,7 +125,10 @@ class MyDropbox():
     def write_file(self, filename, data):
         with open(filename, 'w') as f:
             for d in data:
-                f.write(d.encode('utf8')+'\r\n')
+                try:
+                    f.write(d.encode('utf8')+'\r\n')
+                except UnicodeDecodeError as e:
+                    print e
         pass
 
     def write_filelist(self, filename, data):
