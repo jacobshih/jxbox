@@ -68,6 +68,8 @@ class MyDropbox():
             if not allfiles[f]['is_dir']:
                 filename = allfiles[f]['path']
                 if filename.startswith(FOLDER_YESDEFY):
+                    if filename.startswith(FOLDER_NEW) or filename.endswith(FILE_FILELIST):
+                        continue
                     files.append(filename)
         files.sort()
         return files
