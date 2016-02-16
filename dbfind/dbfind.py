@@ -44,7 +44,7 @@ class MyDropbox:
                 print "Malformed access token in %s." % (token_file,)
         except IOError:
             pass
-        pass
+        return
 
     def db_find(self):
         if self.api_client is None:
@@ -82,7 +82,7 @@ class MyDropbox:
             encoding = locale.getdefaultlocale()[1] or 'ascii'
             full_path = to_path.decode(encoding)
             self.api_client.put_file(full_path, from_file, True)
-        pass
+        return
 
     def db_get(self, from_path, to_path):
         with open(os.path.expanduser(to_path), "wb") as to_file:
@@ -92,16 +92,16 @@ class MyDropbox:
             except rest.ErrorResponse as e:
                 print '(%d)[%s] %s (%s)' % (e.status, e.reason, e.error_msg, from_path)
                 to_file.write('')
-        pass
+        return
 
     def db_copy(self, from_path, to_path):
         self.api_client.file_copy(from_path, to_path)
-        pass
+        return
 
     def db_delete(self, filepath):
         # noinspection PyUnusedLocal
         result = self.api_client.file_delete(filepath)
-        pass
+        return
 
     def check_new_files(self, from_file, to_file):
         self.new_files = []
@@ -140,13 +140,13 @@ class MyDropbox:
                     f.write(d.encode('utf8') + '\r\n')
                 except UnicodeDecodeError as e:
                     print e
-        pass
+        return
 
     def write_filelist(self, filename, data):
         filelist_log = [('%s %s' % (HEADER_FILELIST_UPDATED, str(datetime.datetime.now()))), '']
         filelist_log.extend(data)
         self.write_file(filename, filelist_log)
-        pass
+        return
 
     def copy_new_torrents_to_folder(self, new_files, to_folder):
         new_files_logs = [HEADER_SEPARATOR, '%s %s' % (HEADER_NEWFILES_UPDATED, str(datetime.datetime.now()))]
@@ -170,16 +170,39 @@ class MyDropbox:
         new_files_logs.append('')
         new_files_logs.append(last_content)
         self.write_file(FILE_NEWFILES, new_files_logs)
-        pass
+        return
 
     def is_new_files(self):
         return True if len(self.new_files) is not 0 else False
+
+    def find(self):
+        self.db_get(FOLDER_YESDEFY + '/' + FILE_FILELIST, FILE_FILELIST_LAST)
+        self.db_get(FOLDER_NEW + '/' + FILE_NEWFILES, FILE_NEWFILES)
+        files = self.db_find()
+        self.write_filelist(FILE_FILELIST, files)
+
+        new_files = self.check_new_files(FILE_FILELIST_LAST, FILE_FILELIST)
+        if self.is_new_files():
+            self.copy_new_torrents_to_folder(new_files, FOLDER_NEW)
+            self.db_put(FILE_FILELIST, FOLDER_YESDEFY + '/' + FILE_FILELIST)
+            self.db_put(FILE_NEWFILES, FOLDER_NEW + '/' + FILE_NEWFILES)
+
+        return
+
+    def delete(self, filelist):
+        with open(filelist, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                filename = line[:-1]
+                self.db_delete(filename)
+
+        return
 
 
 def show_usage():
     print "usage:"
     print "  python " + os.path.basename(__file__) + " {tokens.json}"
-    pass
+    return
 
 
 def main():
@@ -188,18 +211,7 @@ def main():
         exit()
     tokens = sys.argv[1]
     mydropbox = MyDropbox(tokens)
-    mydropbox.db_get(FOLDER_YESDEFY + '/' + FILE_FILELIST, FILE_FILELIST_LAST)
-    mydropbox.db_get(FOLDER_NEW + '/' + FILE_NEWFILES, FILE_NEWFILES)
-    files = mydropbox.db_find()
-    mydropbox.write_filelist(FILE_FILELIST, files)
-
-    new_files = mydropbox.check_new_files(FILE_FILELIST_LAST, FILE_FILELIST)
-    if mydropbox.is_new_files():
-        mydropbox.copy_new_torrents_to_folder(new_files, FOLDER_NEW)
-        mydropbox.db_put(FILE_FILELIST, FOLDER_YESDEFY + '/' + FILE_FILELIST)
-        mydropbox.db_put(FILE_NEWFILES, FOLDER_NEW + '/' + FILE_NEWFILES)
-        pass
-    pass
+    mydropbox.find()
 
 
 if __name__ == '__main__':
