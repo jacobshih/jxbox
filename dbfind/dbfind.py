@@ -93,6 +93,10 @@ class MyDropbox():
         self.api_client.file_copy(from_path, to_path)
         pass
 
+    def db_delete(self, filepath):
+        result = self.api_client.file_delete(filepath)
+        pass
+
     def check_new_files(self , from_file, to_file):
         self.new_files = []
         with open(FILE_FILELIST, 'r') as filelist:
