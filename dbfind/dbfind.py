@@ -183,7 +183,7 @@ class MyDropbox:
 
         new_files = self.check_new_files(FILE_FILELIST_LAST, FILE_FILELIST)
         if self.is_new_files():
-            self.copy_new_torrents_to_folder(new_files, FOLDER_NEW)
+            # self.copy_new_torrents_to_folder(new_files, FOLDER_NEW)
             self.db_put(FILE_FILELIST, FOLDER_YESDEFY + '/' + FILE_FILELIST)
             self.db_put(FILE_NEWFILES, FOLDER_NEW + '/' + FILE_NEWFILES)
 
